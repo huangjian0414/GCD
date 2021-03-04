@@ -16,7 +16,9 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [self demo8];
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self demo];
+    });
 //    NSLog(@"---00000--%@",[NSThread currentThread]);
 //    dispatch_async(dispatch_get_global_queue(0, 0), ^{
 //        for (int i=0; i<3; i++) {
@@ -29,6 +31,7 @@
 //        }
 //    });
 //    NSLog(@"---aa--%@",[NSThread currentThread]);
+    
 }
 //并发队列 同步
 -(void)demo
@@ -103,7 +106,7 @@
     //[NSThread sleepForTimeInterval:1.0];
     NSLog(@"---dd--%@",[NSThread currentThread]);
 }
-//主队列 同步(死锁)
+//主队列 同步(死锁)。不开辟新线程，使用同步 互相等待 死锁  ， 如果demo4在子线程执行，则可以，没有互相等待,顺序执行
 -(void)demo4
 {
     NSLog(@"---00000--%@",[NSThread currentThread]);//只打印这句
@@ -115,12 +118,14 @@
     });
     dispatch_sync(queue, ^{
         for (int i=3; i<6; i++) {
+            //sleep(1);
             NSLog(@"---%d--%@",i,[NSThread currentThread]);
         }
     });
     NSLog(@"---ee--%@",[NSThread currentThread]);
 }
-//主队列 异步
+//主队列 异步  在主线程，不开辟新的线程 顺序执行 0-5 ，如果外层(h00000)也在主线程，则外层主线程先执行完，再执行主队列里的
+// 如果外层(h00000)在子线程， 那么（h ee）可能插在 0-5 中间输出
 -(void)demo5
 {
     NSLog(@"---h00000--%@",[NSThread currentThread]);
@@ -132,9 +137,11 @@
     });
     dispatch_async(queue, ^{
         for (int i=3; i<6; i++) {
+//            sleep(1);
             NSLog(@"---h%d--%@",i,[NSThread currentThread]);
         }
     });
+//    sleep(1);
     NSLog(@"---h ee--%@",[NSThread currentThread]);
 }
 //异步请求数据，回主线程刷新
