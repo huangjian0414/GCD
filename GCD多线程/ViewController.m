@@ -16,9 +16,9 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        [self demo];
-    });
+    //dispatch_async(dispatch_get_global_queue(0, 0), ^{
+//        [self demo3];
+    //});
 //    NSLog(@"---00000--%@",[NSThread currentThread]);
 //    dispatch_async(dispatch_get_global_queue(0, 0), ^{
 //        for (int i=0; i<3; i++) {
@@ -32,7 +32,55 @@
 //    });
 //    NSLog(@"---aa--%@",[NSThread currentThread]);
     
+//    [self maxTaskAsync];
 }
+
+/// 并发限制
+-(void)maxTaskAsync{
+    
+    dispatch_queue_t serialQueue = dispatch_queue_create("sssssssss",DISPATCH_QUEUE_SERIAL);
+
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(3);
+
+    for (int i = 0; i < 10; i++) {
+        dispatch_async(serialQueue, ^{///放入串行队列
+            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);///信号量-1
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+
+                NSLog(@"start  %@  --  %d",[NSThread currentThread],i);
+                sleep(3);
+                NSLog(@"end  %@  --  %d",[NSThread currentThread],i);
+
+                dispatch_semaphore_signal(semaphore);/// 信号量+1
+
+            });
+            NSLog(@"666- %d",i);
+        });
+        NSLog(@"777- %d",i);
+    }
+    NSLog(@"888- ");
+//    dispatch_queue_t serialQueue = dispatch_queue_create("sssssssss",DISPATCH_QUEUE_CONCURRENT);
+//
+//    dispatch_semaphore_t semaphore = dispatch_semaphore_create(3);
+//
+//    for (int i = 0; i < 10; i++) {
+//        dispatch_sync(serialQueue, ^{
+//            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+//
+//                NSLog(@"start  %@  --  %d",[NSThread currentThread],i);
+//                sleep(3);
+//                NSLog(@"end  %@  --  %d",[NSThread currentThread],i);
+//
+//                dispatch_semaphore_signal(semaphore);
+//
+//            });
+//
+//        });
+//    }
+    
+}
+
 //并发队列 同步
 -(void)demo
 {
